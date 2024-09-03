@@ -6,7 +6,7 @@ on:
 
 jobs:
   theme-check:
-    if: startsWith(github.event.label.name, 'New Theme:')
+    if: startsWith(github.event.label.name, 'New Theme')
     runs-on: ubuntu-latest
     
     steps:
