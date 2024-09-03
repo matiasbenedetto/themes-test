@@ -9,9 +9,27 @@ jobs:
     if: startsWith(github.event.label.name, 'New Theme')
     runs-on: ubuntu-latest
     
+    services:
+      wordpress:
+        image: wordpress:php8.2
+        ports:
+          - 8080:80
+        env:
+          WORDPRESS_DB_HOST: db
+          WORDPRESS_DB_USER: wordpress
+          WORDPRESS_DB_PASSWORD: wordpress
+          WORDPRESS_DB_NAME: wordpress
+      db:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: wordpress
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Get added folder
       id: get_folder
@@ -20,53 +38,23 @@ jobs:
         echo "THEME_FOLDER=$ADDED_FOLDER" >> $GITHUB_ENV
         echo "Added folder: $ADDED_FOLDER"
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '7.4'
-
-    - name: Install WP-CLI
+    - name: Wait for WordPress
       run: |
-        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        chmod +x wp-cli.phar
-        sudo mv wp-cli.phar /usr/local/bin/wp
-
-    - name: Install WordPress
-      run: |
-        wget https://wordpress.org/latest.tar.gz
-        tar -xzf latest.tar.gz
-        mv wordpress /tmp/wordpress
-
-    - name: Set up WordPress configuration
-      run: |
-        cd /tmp/wordpress
-        cp wp-config-sample.php wp-config.php
-        sed -i 's/database_name_here/wordpress/' wp-config.php
-        sed -i 's/username_here/root/' wp-config.php
-        sed -i 's/password_here/root/' wp-config.php
-
-    - name: Set up MySQL
-      run: |
-        sudo systemctl start mysql
-        mysql -e 'CREATE DATABASE wordpress;' -uroot -proot
+        timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" != "302" ]]; do sleep 5; done' || false
 
     - name: Install and activate theme
       run: |
-        cp -R ${{ github.workspace }}/${{ env.THEME_FOLDER }} /tmp/wordpress/wp-content/themes/
-        cd /tmp/wordpress
-        wp core install --url=http://localhost --title=Test --admin_user=admin --admin_password=password --admin_email=admin@example.com --allow-root
-        wp theme activate ${{ env.THEME_FOLDER }} --allow-root
+        docker cp ${{ github.workspace }}/${{ env.THEME_FOLDER }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme activate ${{ env.THEME_FOLDER }} --allow-root
 
     - name: Install and activate Theme Check plugin
       run: |
-        cd /tmp/wordpress
-        wp plugin install theme-check --activate --allow-root
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp plugin install theme-check --activate --allow-root
 
     - name: Run Theme Check
       id: theme_check
       run: |
-        cd /tmp/wordpress
-        THEME_CHECK_RESULT=$(wp theme check ${{ env.THEME_FOLDER }} --format=json --allow-root)
+        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme check ${{ env.THEME_FOLDER }} --format=json --allow-root)
         echo "THEME_CHECK_RESULT<<EOF" >> $GITHUB_ENV
         echo "$THEME_CHECK_RESULT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
