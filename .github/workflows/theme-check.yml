@@ -35,8 +35,11 @@ jobs:
       id: get_folder
       run: |
         ADDED_FOLDER=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '/' | cut -d'/' -f1 | uniq)
-        echo "THEME_FOLDER=$ADDED_FOLDER" >> $GITHUB_ENV
+        echo "ADDED_FOLDER=$ADDED_FOLDER" >> $GITHUB_ENV
         echo "Added folder: $ADDED_FOLDER"
+
+    - name: Debug ADDED_FOLDER
+      run: echo "ADDED_FOLDER is ${{ env.ADDED_FOLDER }}"
 
     - name: Wait for WordPress
       run: |
@@ -44,8 +47,8 @@ jobs:
 
     - name: Install and activate theme
       run: |
-        docker cp ${{ github.workspace }}/${{ env.THEME_FOLDER }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
-        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme activate ${{ env.THEME_FOLDER }} --allow-root
+        docker cp ${{ github.workspace }}/${{ env.ADDED_FOLDER }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme activate ${{ env.ADDED_FOLDER }} --allow-root
 
     - name: Install and activate Theme Check plugin
       run: |
@@ -54,7 +57,7 @@ jobs:
     - name: Run Theme Check
       id: theme_check
       run: |
-        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme check ${{ env.THEME_FOLDER }} --format=json --allow-root)
+        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme check ${{ env.ADDED_FOLDER }} --format=json --allow-root)
         echo "THEME_CHECK_RESULT<<EOF" >> $GITHUB_ENV
         echo "$THEME_CHECK_RESULT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
@@ -67,7 +70,7 @@ jobs:
           const themeCheckResult = process.env.THEME_CHECK_RESULT;
           const parsedResult = JSON.parse(themeCheckResult);
           
-          let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
+          let comment = `## Theme Check Results for ${process.env.ADDED_FOLDER}\n\n`;
           
           for (const check of parsedResult) {
             comment += `### ${check.name}\n`;
