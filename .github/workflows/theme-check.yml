@@ -36,7 +36,7 @@ jobs:
       run: |
         ADDED_FOLDER=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep '/' | cut -d'/' -f1 | uniq)
         echo "ADDED_FOLDER=$ADDED_FOLDER" >> $GITHUB_ENV
-        echo "Added folder: $ADDED_FOLDER"
+        echo "ADDED_FOLDER is ${{ env.ADDED_FOLDER }}"
 
     - name: Debug ADDED_FOLDER
       run: echo "ADDED_FOLDER is ${{ env.ADDED_FOLDER }}"
