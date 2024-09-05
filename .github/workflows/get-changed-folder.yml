@@ -1,7 +1,7 @@
 name: 'Get First Changed Root Folder'
 on:
   pull_request:
-
+    types: [opened, labeled, synchronize]
 jobs:
   get-changed-folder:
     runs-on: ubuntu-latest
