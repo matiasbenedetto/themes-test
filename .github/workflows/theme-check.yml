@@ -31,9 +31,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Get changed folder
-      uses: ./.github/actions/get-changed-folder
-      id: changed-folder
+    - name: Get first changed root folder
+      uses: actions/github-script@v6
+      with:
+        script: |
+            const { owner, repo, number } = context.issue;
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: number,
+            });
+            
+            let firstRootFolder = '.';
+            for (const file of files) {
+              const parts = file.filename.split('/');
+              if (parts.length > 1) {
+                firstRootFolder = parts[0];
+                break;
+              }
+            }
+            
+            core.exportVariable('THEME_FOLDER', firstRootFolder);
+            console.log(`First changed root folder: ${firstRootFolder}`);
 
     - name: Debug ADDED_FOLDER
       run: echo "ADDED_FOLDER is ${{ env.THEME_FOLDER }}"
@@ -67,7 +86,7 @@ jobs:
           const themeCheckResult = process.env.THEME_CHECK_RESULT;
           const parsedResult = JSON.parse(themeCheckResult);
           
-          let comment = `## Theme Check Results for ${process.env.ADDED_FOLDER}\n\n`;
+          let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
           
           for (const check of parsedResult) {
             comment += `### ${check.name}\n`;
