@@ -1,0 +1,40 @@
+name: 'Get First Changed Root Folder'
+on:
+  pull_request:
+
+jobs:
+  get-changed-folder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      
+      - name: Get first changed root folder
+        id: changed-folder
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, number } = context.issue;
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: number,
+            });
+            
+            let firstRootFolder = '.';
+            for (const file of files) {
+              const parts = file.filename.split('/');
+              if (parts.length > 1) {
+                firstRootFolder = parts[0];
+                break;
+              }
+            }
+            
+            core.exportVariable('CHANGED_ROOT_FOLDER', firstRootFolder);
+            console.log(`First changed root folder: ${firstRootFolder}`);
