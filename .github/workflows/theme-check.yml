@@ -31,14 +31,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Get Theme Folder
-      id: theme-folder
-      run: |
-        theme_folder=$(git diff --name-only HEAD^ HEAD | grep -m 1 '\.php$' | cut -d '/' -f 1)
-        echo "theme_folder=${theme_folder}" >> $GITHUB_OUTPUT
+    - name: Get changed folder
+      uses: ./.github/actions/get-changed-folder
+      id: changed-folder
 
     - name: Debug ADDED_FOLDER
-      run: echo "ADDED_FOLDER is ${{ steps.theme-folder.outputs.theme_folder }}"
+      run: echo "ADDED_FOLDER is ${{ env.THEME_FOLDER }}"
 
     - name: Wait for WordPress
       run: |
@@ -46,8 +44,8 @@ jobs:
 
     - name: Install and activate theme
       run: |
-        docker cp ${{ github.workspace }}/${{ steps.theme-folder.outputs.theme_folder }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
-        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme activate ${{ steps.theme-folder.outputs.theme_folder }} --allow-root
+        docker cp ${{ github.workspace }}/${{ env.THEME_FOLDER }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme activate ${{ env.THEME_FOLDER }} --allow-root
 
     - name: Install and activate Theme Check plugin
       run: |
@@ -56,7 +54,7 @@ jobs:
     - name: Run Theme Check
       id: theme_check
       run: |
-        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme check ${{ steps.theme-folder.outputs.theme_folder }} --format=json --allow-root)
+        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme check ${{ env.THEME_FOLDER }} --format=json --allow-root)
         echo "THEME_CHECK_RESULT<<EOF" >> $GITHUB_ENV
         echo "$THEME_CHECK_RESULT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
