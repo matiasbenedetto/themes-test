@@ -38,7 +38,7 @@ jobs:
         docker exec $(docker ps -qf "ancestor=wordpress:php8.2") mv wp-cli.phar /usr/local/bin/wp
 
     - name: Test WP-CLI
-      run: wp --info
+      run: docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp --info
 
     - name: Get first changed root folder
       uses: actions/github-script@v6
