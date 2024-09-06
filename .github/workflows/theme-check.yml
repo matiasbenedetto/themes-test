@@ -31,11 +31,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install WP-CLI
+    - name: Install WP-CLI inside WordPress container
       run: |
-        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        chmod +x wp-cli.phar
-        sudo mv wp-cli.phar /usr/local/bin/wp
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") chmod +x wp-cli.phar
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") mv wp-cli.phar /usr/local/bin/wp
 
     - name: Test WP-CLI
       run: wp --info
