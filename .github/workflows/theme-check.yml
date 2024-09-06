@@ -81,10 +81,6 @@ jobs:
     - name: Debug ADDED_FOLDER
       run: echo "ADDED_FOLDER is ${{ env.THEME_FOLDER }}"
 
-    - name: Wait for WordPress
-      run: |
-        timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" != "302" ]]; do sleep 5; done' || false
-
     - name: Install and activate theme
       run: |
         docker cp ${{ github.workspace }}/${{ env.THEME_FOLDER }} $(docker ps -qf "ancestor=wordpress:php8.2"):/var/www/html/wp-content/themes/
