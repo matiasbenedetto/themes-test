@@ -102,6 +102,31 @@ jobs:
         echo "$THEME_CHECK_RESULT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
+    - name: Find and delete previous comment
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const { owner, repo, number } = context.issue;
+          const { data: comments } = await github.rest.issues.listComments({
+            owner,
+            repo,
+            issue_number: number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && 
+            comment.body.includes('Theme Check Results')
+          );
+          
+          if (botComment) {
+            await github.rest.issues.deleteComment({
+              owner,
+              repo,
+              comment_id: botComment.id,
+            });
+          }
+
     - name: Comment PR
       uses: actions/github-script@v6
       with:
@@ -111,6 +136,7 @@ jobs:
           const parsedResult = JSON.parse(themeCheckResult);
           
           let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
+          comment += `Last updated: ${new Date().toUTCString()}\n\n`;
           
           for (const check of parsedResult) {
             comment += `**Type:** ${check.type}\n`;
