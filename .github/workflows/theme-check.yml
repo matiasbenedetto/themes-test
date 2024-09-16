@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, labeled, synchronize]
 
+# Add this permissions block
+permissions:
+  pull-requests: write
+
 jobs:
   theme-check:
     if: startsWith(github.event.label.name, 'New Theme')
