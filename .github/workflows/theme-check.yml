@@ -159,6 +159,13 @@ jobs:
           
           let fullComment = '';
           const folders = process.env.THEME_FOLDERS.split(',');
+
+          const emojis = {
+            'REQUIRED': '❎',
+            'WARNING': '⚠️',
+            'RECOMMENDED': '💡',
+            'INFO': 'ℹ️',
+          };
           
           for (const folder of folders) {
             const envVarName = `THEME_CHECK_RESULT_${folder.replace(/-/g, '_')}`;
@@ -168,10 +175,16 @@ jobs:
             
             console.log(`Theme Check Result for ${folder}: ${themeCheckResult}`);
             console.log(`Theme Check Exit Code for ${folder}: ${themeCheckExitCode}`);
-            
+
             const comments = JSON.parse(themeCheckResult);
             
             fullComment += `### ${folder} | Theme-Check results:\n\n`;
+
+            if (themeCheckExitCode !== 0) {
+              fullComment += `❎ **${folder}: There are required changes on the theme.**\n\n`;
+            } else {
+              fullComment += `✅ **${folder}: No changes required.**\n\n`;
+            }
 
             const groupedComments = {};
             for (const check of comments) {
@@ -184,7 +197,7 @@ jobs:
             // Add REQUIRED comments to the main body
             for (const type of ['REQUIRED']) {
               if (groupedComments[type]) {
-                fullComment += `### ${type}\n`;
+                fullComment += `### ${emojis[type]} ${type}\n`;
                 groupedComments[type].forEach(value => {
                   fullComment += `- ${value}\n`;
                 });
@@ -194,16 +207,17 @@ jobs:
 
             for (const [type, groupComments] of Object.entries(groupedComments)) {
               if (type !== 'REQUIRED') {
-                fullComment += `<details>\n<summary>${type} (${groupComments.length})</summary>\n\n`;
+                fullComment += `<details>\n<summary>${emojis[type]} ${type} (${groupComments.length})</summary>\n\n`;
                 groupComments.forEach(value => {
                   fullComment += `- ${value}\n`;
                 });
                 fullComment += '\n</details>\n\n';
               }
             }
-          }
 
-          fullComment += '--- \n';
+            fullComment += '--- \n';
+          }
+          
           fullComment += `Last updated: ${new Date().toUTCString()}\n\n`;
           
           github.rest.issues.createComment({
