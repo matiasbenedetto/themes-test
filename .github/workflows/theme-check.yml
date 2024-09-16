@@ -169,16 +169,42 @@ jobs:
             console.log(`Theme Check Result for ${folder}: ${themeCheckResult}`);
             console.log(`Theme Check Exit Code for ${folder}: ${themeCheckExitCode}`);
             
-            const parsedResult = JSON.parse(themeCheckResult);
+            const comments = JSON.parse(themeCheckResult);
             
-            let comment = `### ${folder} | Theme-Check results:\n\n`;
-            comment += `Last updated: ${new Date().toUTCString()}\n\n`;
+            fullComment += `### ${folder} | Theme-Check results:\n\n`;
 
-            // Add parsed result to the comment
-            comment += `\`\`\`json\n${JSON.stringify(parsedResult, null, 2)}\n\`\`\`\n\n`;
+            const groupedComments = {};
+            for (const check of comments) {
+              if (!groupedComments[check.type]) {
+                groupedComments[check.type] = [];
+              }
+              groupedComments[check.type].push(check.value);
+            }
 
-            fullComment += comment + '\n---\n\n';
+            // Add REQUIRED comments to the main body
+            for (const type of ['REQUIRED']) {
+              if (groupedComments[type]) {
+                fullComment += `### ${type}\n`;
+                groupedComments[type].forEach(value => {
+                  fullComment += `- ${value}\n`;
+                });
+                fullComment += '\n';
+              }
+            }
+
+            for (const [type, groupComments] of Object.entries(groupedComments)) {
+              if (type !== 'REQUIRED') {
+                fullComment += `<details>\n<summary>${type} (${groupComments.length})</summary>\n\n`;
+                groupComments.forEach(value => {
+                  fullComment += `- ${value}\n`;
+                });
+                fullComment += '\n</details>\n\n';
+              }
+            }
           }
+
+          fullComment += '--- \n';
+          fullComment += `Last updated: ${new Date().toUTCString()}\n\n`;
           
           github.rest.issues.createComment({
             issue_number: context.issue.number,
