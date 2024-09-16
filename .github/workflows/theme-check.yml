@@ -168,13 +168,15 @@ jobs:
             }
           }
           
-          // Add all comments as collapsible sections
+          // Add all comments as collapsible sections, excluding REQUIRED
           for (const [type, comments] of Object.entries(groupedComments)) {
-            comment += `<details>\n<summary>${type} (${comments.length})</summary>\n\n`;
-            comments.forEach(value => {
-              comment += `- ${value}\n`;
-            });
-            comment += '\n</details>\n\n';
+            if (type !== 'REQUIRED') {
+              comment += `<details>\n<summary>${type} (${comments.length})</summary>\n\n`;
+              comments.forEach(value => {
+                comment += `- ${value}\n`;
+              });
+              comment += '\n</details>\n\n';
+            }
           }
           
           github.rest.issues.createComment({
