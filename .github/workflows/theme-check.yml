@@ -125,7 +125,7 @@ jobs:
           
           const botComment = comments.find(comment => 
             comment.user.type === 'Bot' && 
-            comment.body.includes('Theme Check Results')
+            comment.body.includes('Theme-Check results')
           );
           
           if (botComment) {
