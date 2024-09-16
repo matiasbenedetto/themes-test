@@ -88,7 +88,7 @@ jobs:
 
     - name: Install and activate Theme Check plugin
       run: |
-        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp plugin install theme-check --activate --allow-root
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp plugin install https://github.com/WordPress/theme-check/archive/refs/pull/458/head.zip --activate --allow-root
 
     - name: Run Theme Check
       id: theme_check
@@ -109,9 +109,8 @@ jobs:
           let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
           
           for (const check of parsedResult) {
-            comment += `### ${check.name}\n`;
             comment += `**Type:** ${check.type}\n`;
-            comment += `**Description:** ${check.description}\n\n`;
+            comment += `**Description:** ${check.value}\n\n`;
           }
           
           github.rest.issues.createComment({
