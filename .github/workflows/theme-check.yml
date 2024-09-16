@@ -72,6 +72,8 @@ jobs:
               repo,
               pull_number: number,
             });
+
+            console.log('files', files);
             
             const rootFolders = new Set();
             for (const file of files) {
