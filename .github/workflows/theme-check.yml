@@ -141,6 +141,15 @@ jobs:
           
           let comment = `### ${process.env.THEME_FOLDER} | Theme-Check results:\n\n`;
           comment += `Last updated: ${new Date().toUTCString()}\n\n`;
+
+          const groupedComments = {};
+          
+          for (const check of parsedResult) {
+            if (!groupedComments[check.type]) {
+              groupedComments[check.type] = [];
+            }
+            groupedComments[check.type].push(check.value);
+          }
           
           if (themeCheckExitCode !== 0) {
             comment += `❎ **${process.env.THEME_FOLDER}: There are required changes on the theme**\n\n`;
