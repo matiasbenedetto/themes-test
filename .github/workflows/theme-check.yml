@@ -96,10 +96,14 @@ jobs:
     - name: Run Theme Check
       id: theme_check
       run: |
-        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme-check run ${{ env.THEME_FOLDER }} --format=json --allow-root || true)
+        set +e
+        THEME_CHECK_RESULT=$(docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp theme-check run ${{ env.THEME_FOLDER }} --format=json --allow-root)
+        THEME_CHECK_EXIT_CODE=$?
+        set -e
         echo "THEME_CHECK_RESULT<<EOF" >> $GITHUB_ENV
         echo "$THEME_CHECK_RESULT" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
+        echo "THEME_CHECK_EXIT_CODE=$THEME_CHECK_EXIT_CODE" >> $GITHUB_ENV
 
     - name: Find and delete previous comment
       uses: actions/github-script@v6
@@ -132,22 +136,20 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
           const themeCheckResult = process.env.THEME_CHECK_RESULT;
+          const themeCheckExitCode = parseInt(process.env.THEME_CHECK_EXIT_CODE);
           const parsedResult = JSON.parse(themeCheckResult);
           
-          let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
+          let comment = `### ${process.env.THEME_FOLDER} | Theme-Check results:\n\n`;
           comment += `Last updated: ${new Date().toUTCString()}\n\n`;
           
-          const groupedComments = {};
-          
-          for (const check of parsedResult) {
-            if (!groupedComments[check.type]) {
-              groupedComments[check.type] = [];
-            }
-            groupedComments[check.type].push(check.value);
+          if (themeCheckExitCode !== 0) {
+            comment += `❎ **${process.env.THEME_FOLDER}: There are required changes on the theme**\n\n`;
+          } else {
+            comment += `✅ **${process.env.THEME_FOLDER}: No changes required**\n\n`;
           }
           
-          // Add REQUIRED and VALIDATION comments to the main body
-          for (const type of ['REQUIRED', 'VALIDATION']) {
+          // Add REQUIRED comments to the main body
+          for (const type of ['REQUIRED']) {
             if (groupedComments[type]) {
               comment += `### ${type}\n`;
               groupedComments[type].forEach(value => {
