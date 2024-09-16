@@ -151,12 +151,17 @@ jobs:
             const exitCodeVarName = `THEME_CHECK_EXIT_CODE_${folder.replace(/-/g, '_')}`;
             const themeCheckResult = process.env[envVarName];
             const themeCheckExitCode = parseInt(process.env[exitCodeVarName]);
+            
+            console.log(`Theme Check Result for ${folder}: ${themeCheckResult}`);
+            console.log(`Theme Check Exit Code for ${folder}: ${themeCheckExitCode}`);
+            
             const parsedResult = JSON.parse(themeCheckResult);
             
             let comment = `### ${folder} | Theme-Check results:\n\n`;
             comment += `Last updated: ${new Date().toUTCString()}\n\n`;
 
-            // ... rest of the comment generation logic ...
+            // Add parsed result to the comment
+            comment += `\`\`\`json\n${JSON.stringify(parsedResult, null, 2)}\n\`\`\`\n\n`;
 
             fullComment += comment + '\n---\n\n';
           }
