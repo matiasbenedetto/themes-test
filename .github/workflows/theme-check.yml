@@ -73,7 +73,7 @@ jobs:
               pull_number: number,
             });
 
-            console.log('files', files);
+            console.log('files', files.map(file => file.filename));
             
             const rootFolders = new Set();
             for (const file of files) {
