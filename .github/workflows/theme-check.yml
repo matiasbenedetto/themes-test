@@ -138,9 +138,33 @@ jobs:
           let comment = `## Theme Check Results for ${process.env.THEME_FOLDER}\n\n`;
           comment += `Last updated: ${new Date().toUTCString()}\n\n`;
           
+          const groupedComments = {};
+          
           for (const check of parsedResult) {
-            comment += `**Type:** ${check.type}\n`;
-            comment += `**Description:** ${check.value}\n\n`;
+            if (!groupedComments[check.type]) {
+              groupedComments[check.type] = [];
+            }
+            groupedComments[check.type].push(check.value);
+          }
+          
+          // Add REQUIRED and VALIDATION comments to the main body
+          for (const type of ['REQUIRED', 'VALIDATION']) {
+            if (groupedComments[type]) {
+              comment += `### ${type}\n`;
+              groupedComments[type].forEach(value => {
+                comment += `- ${value}\n`;
+              });
+              comment += '\n';
+            }
+          }
+          
+          // Add all comments as collapsible sections
+          for (const [type, comments] of Object.entries(groupedComments)) {
+            comment += `<details>\n<summary>${type} (${comments.length})</summary>\n\n`;
+            comments.forEach(value => {
+              comment += `- ${value}\n`;
+            });
+            comment += '\n</details>\n\n';
           }
           
           github.rest.issues.createComment({
