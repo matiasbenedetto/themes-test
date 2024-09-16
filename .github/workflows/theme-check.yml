@@ -181,9 +181,9 @@ jobs:
             fullComment += `### ${folder} | Theme-Check results:\n\n`;
 
             if (themeCheckExitCode !== 0) {
-              fullComment += `❎ **${folder}: There are required changes on the theme.**\n\n`;
+              fullComment += `**There are required changes on the theme ❌.**\n\n`;
             } else {
-              fullComment += `✅ **${folder}: No changes required.**\n\n`;
+              fullComment += `**${folder}: No changes required ✅.**\n\n`;
             }
 
             const groupedComments = {};
