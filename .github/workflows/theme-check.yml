@@ -58,6 +58,10 @@ jobs:
     - name: Test WP-CLI
       run: docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp --info
 
+    - name: Install and activate Theme Check plugin
+      run: |
+        docker exec $(docker ps -qf "ancestor=wordpress:php8.2") wp plugin install https://github.com/WordPress/theme-check/archive/refs/pull/458/head.zip --activate --allow-root
+
     - name: Get changed root folders
       uses: actions/github-script@v6
       with:
