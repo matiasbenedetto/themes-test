@@ -167,7 +167,9 @@ jobs:
             'INFO': 'ℹ️',
           };
           
-          fullComment += 'Theme-Check results\n\n';
+          fullComment += 'Theme-Check results\n';
+          fullComment += '--- \n';
+          
           for (const folder of folders) {
             const envVarName = `THEME_CHECK_RESULT_${folder.replace(/-/g, '_')}`;
             const exitCodeVarName = `THEME_CHECK_EXIT_CODE_${folder.replace(/-/g, '_')}`;
@@ -180,9 +182,9 @@ jobs:
             const comments = JSON.parse(themeCheckResult);
             
             if (themeCheckExitCode !== 0) {
-              fullComment += `### ${folder}: There are required changes on the theme ❌.`;
+              fullComment += `### ${folder}: There are required changes on the theme ❌.\n`;
             } else {
-              fullComment += `### ${folder}: No changes required ✅.`;
+              fullComment += `### ${folder}: No changes required ✅.\n`;
             }
 
             const groupedComments = {};
