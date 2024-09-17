@@ -159,6 +159,7 @@ jobs:
           
           let fullComment = '';
           const folders = process.env.THEME_FOLDERS.split(',');
+          let hasErrors = false;
 
           const emojis = {
             'REQUIRED': '❎',
@@ -178,6 +179,10 @@ jobs:
             
             console.log(`Theme Check Result for ${folder}: ${themeCheckResult}`);
             console.log(`Theme Check Exit Code for ${folder}: ${themeCheckExitCode}`);
+
+            if (themeCheckExitCode !== 0) {
+              hasErrors = true;
+            }
 
             const comments = JSON.parse(themeCheckResult);
             
@@ -225,3 +230,7 @@ jobs:
             repo: context.repo.repo,
             body: fullComment
           });
+
+          if (hasErrors) {
+            core.setFailed('One or more themes have required changes. Please review the comments and make necessary updates.');
+          }
