@@ -8,7 +8,8 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-Bute is a blog theme that has a full-screen front page
+Bute is a blog theme that has a full-screen front page.
+Testing a change.
 
 == Changelog ==
 
