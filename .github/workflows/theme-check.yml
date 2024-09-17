@@ -23,9 +23,17 @@ jobs:
     - name: Install @wordpress/env
       run: npm install -g @wordpress/env 
 
+    - name: Write .wp-env.json to provide configuration for the WordPress environment
+      run: |
+        echo '{
+          "mappings": {
+            "wp-content/themes": "${{ github.workspace }}"
+          }
+        }' > .wp-env.json
+
     - name: Start WordPress environment
       run: |
-        wp-env start --mappings='{"wp-content/themes": "${{ github.workspace }}"}' --update
+        wp-env start
         wp-env run cli wp core install --url=http://localhost:8888 --title="Test Site" --admin_user=admin --admin_password=admin_password --admin_email=admin@example.com --skip-email
 
     - name: Install and activate Theme Check plugin
