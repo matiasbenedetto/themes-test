@@ -167,6 +167,7 @@ jobs:
             'INFO': 'ℹ️',
           };
           
+          fullComment += 'Theme-Check results\n\n';
           for (const folder of folders) {
             const envVarName = `THEME_CHECK_RESULT_${folder.replace(/-/g, '_')}`;
             const exitCodeVarName = `THEME_CHECK_EXIT_CODE_${folder.replace(/-/g, '_')}`;
@@ -178,12 +179,10 @@ jobs:
 
             const comments = JSON.parse(themeCheckResult);
             
-            fullComment += `### ${folder} | Theme-Check results:\n\n`;
-
             if (themeCheckExitCode !== 0) {
-              fullComment += `**There are required changes on the theme ❌.**\n\n`;
+              fullComment += `### ${folder}: There are required changes on the theme ❌.`;
             } else {
-              fullComment += `**${folder}: No changes required ✅.**\n\n`;
+              fullComment += `### ${folder}: No changes required ✅.`;
             }
 
             const groupedComments = {};
@@ -197,7 +196,7 @@ jobs:
             // Add REQUIRED comments to the main body
             for (const type of ['REQUIRED']) {
               if (groupedComments[type]) {
-                fullComment += `### ${emojis[type]} ${type}\n`;
+                fullComment += `**${emojis[type]} ${type}**\n`;
                 groupedComments[type].forEach(value => {
                   fullComment += `- ${value}\n`;
                 });
